@@ -10,7 +10,7 @@ USER_CREDENTIALS = {
     "user": "password"
 }
 
-# State login
+# Initialize session states
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
@@ -30,7 +30,7 @@ def login():
         if username in USER_CREDENTIALS and USER_CREDENTIALS[username] == password:
             st.session_state.logged_in = True
             st.success("Login berhasil! Silakan lanjut ke dashboard.")
-            st.experimental_rerun()
+            st.rerun()
         else:
             st.error("Username atau password salah!")
 
@@ -46,7 +46,6 @@ def informasi_perusahaan():
     **Deskripsi:** PT Elektronik Widya Sejahtera merupakan Perseroan Terbatas di Indonesia.
     """)
     st.markdown("---")
-    # Tidak menggunakan st.info() untuk mencegah error
 
 
 # ================================
@@ -60,7 +59,6 @@ def kontak():
     **Nomor Telepon:** 021-012235  
     """)
     st.markdown("---")
-    # Tidak menggunakan st.info() untuk mencegah error
 
 
 # ================================
@@ -79,20 +77,21 @@ def galeri():
 # Halaman: Dashboard Prediksi
 # ================================
 def dashboard_prediksi():
+    st.title("Prediksi Lama Produksi Alat Elektronik Impor")
+    st.write("Gunakan aplikasi ini untuk memprediksi waktu produksi berdasarkan beberapa faktor.")
+
     # Load model
     try:
         with open('model_rf_terbaik.pkl', 'rb') as f:
             model = pickle.load(f)
     except FileNotFoundError:
-        st.error("Model tidak ditemukan: 'model_rf_terbaik.pkl'. Pastikan file ada di folder yang sama.")
+        st.error("❌ Model tidak ditemukan: 'model_rf_terbaik.pkl'. Pastikan file ada di folder yang sama.")
         return
     except Exception as e:
         st.error(f"Terjadi error saat memuat model: {e}")
         return
 
-    st.title("Prediksi Lama Produksi Alat Elektronik Impor")
-    st.write("Gunakan aplikasi ini untuk memprediksi waktu produksi berdasarkan beberapa faktor.")
-
+    # Input User
     jenis_produk = st.selectbox("Jenis Produk", ["AC", "Kulkas", "Televisi"])
     jenis_produk_encoded = {"AC": 0, "Kulkas": 1, "Televisi": 2}[jenis_produk]
 
@@ -101,11 +100,12 @@ def dashboard_prediksi():
     mesin_aktif = st.number_input("Jumlah Mesin Aktif", min_value=0, step=1)
     tenaga_kerja = st.number_input("Jumlah Tenaga Kerja", min_value=0, step=1)
 
+    # Prediksi
     if st.button("Prediksi Lama Produksi"):
         try:
             input_data = np.array([[jenis_produk_encoded, permintaan, stok_bahan, mesin_aktif, tenaga_kerja]])
             prediksi = model.predict(input_data)
-            st.success(f"Perkiraan Lama Produksi: **{prediksi[0]:.2f} jam**")
+            st.success(f"⏱ Perkiraan Lama Produksi: **{prediksi[0]:.2f} jam**")
         except Exception as e:
             st.error(f"Gagal memprediksi: {e}")
 
@@ -130,7 +130,7 @@ def main_menu():
         galeri()
     elif menu == "Logout":
         st.session_state.logged_in = False
-        st.experimental_rerun()
+        st.rerun()
 
 
 # ================================
